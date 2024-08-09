@@ -47,3 +47,7 @@ Y por último se aplican los cambios para alcanzar el estado deseado de la infra
 ```
 terraform apply
 ```
+
+## Parte 2: Aplicaciones y flujo CI/CD
+
+### 1. Aplicación API HTTP
