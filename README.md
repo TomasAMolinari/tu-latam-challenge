@@ -23,4 +23,27 @@ c. Para **exponer los datos almacenados** mediante una API HTTP, se utiliza el s
 
 ### 2. Despliegue de infraestructura
 
-Para el despliegue automático de estos servicios en GCP, se utilizará el software de *infrastructure as code* (IaC) **Terraform**. 
+Para el despliegue automático de estos servicios en GCP, se utiliza el software de *infrastructure as code* (IaC) **Terraform**.
+
+El código se encuentra en el directorio `/terraform`, que contiene los servicios anteriormente mencionados, y la configuración básica para poder desplegarlos.
+
+Para crear los recursos en un **entorno GCP ya existente**, primero es necesario autenticarse a la consola de Google Cloud. Para esto se utiliza el **archivo de credenciales** de una *service account*. Este método es seguro y fácil de implementar. Para ello se crea una *service account* manualmente en GCP, con los permisos necesarios para correr todos los servicios correspondientes. Luego se crea una JSON *key* dentro de esta cuenta, la cual se coloca en el directorio `/terraform` con el nombre `gcp-terraform-creds.json`, y de esta forma Terraform conectará la cuenta de GCP correctamente.
+
+Este archivo JSON no debe ser incluido en el control de versiones, por los riesgos de seguridad que conlleva tener datos sensibles que permitan el acceso a la cuenta de Google Cloud.
+
+Por el mismo motivo, no se cuenta con el archivo `terraform.tfvars` que indica a Terraform el valor de las variables que debe utilizar. Para facilitar la ejecución, se creó el archivo `terraforn.tfvars.example` que indica que variables hay que *setear*, y un valor de ejemplo para cada una de ellas.
+
+Una vez resuelto estas dos últimas cuestiones, se procede a inicializar el directorio de trabajo de Terraform, en el propio directorio `/terraform`:
+```
+terraform init
+ ```
+ 
+Luego se crea el plan de ejecución:
+```
+terraform plan
+```
+
+Y por último se aplican los cambios para alcanzar el estado deseado de la infraestructura:
+```
+terraform apply
+```
