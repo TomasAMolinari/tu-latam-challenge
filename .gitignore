@@ -13,3 +13,7 @@ terraform.rc
 
 # Credenciales
 gcp-terraform-creds.json
+
+#Python
+venv/
+__pycache__

@@ -14,9 +14,19 @@ resource "google_bigquery_table" "analytics_table" {
     "mode": "REQUIRED"
   },
   {
-    "name": "data",
+    "name": "nombre",
     "type": "STRING",
-    "mode": "NULLABLE"
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "apellido",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "pais",
+    "type": "STRING",
+    "mode": "REQUIRED"
   }
 ]
 EOF
