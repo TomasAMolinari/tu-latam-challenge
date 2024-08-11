@@ -24,7 +24,7 @@ def execute_query(query):
         query_job = client.query(query)
         results = query_job.result()
 
-        # Convertir los resultados a una lista de diccionarios
+        # convertir los resultados a una lista de diccionarios
         data = []
         for row in results:
             data.append(dict(row))
@@ -35,18 +35,40 @@ def execute_query(query):
         logger.error(f"Error al ejecutar la consulta en BigQuery: {e}")
         raise
 
-def fetch_data_from_bigquery():
+def fetch_records_from_bigquery(limit=100, offset=0):
     """
-    Ejecuta una consulta SQL para obtener datos desde BigQuery.
-    :return: Lista de diccionarios con las primeras 100 filas de la tabla
+    Ejecuta una consulta SQL para obtener datos desde BigQuery con soporte para limit y offset.
+    :param limit: Número máximo de filas a retornar
+    :param offset: Número de filas a omitir (paginación)
+    :return: Lista de diccionarios con los resultados de la consulta
     """
-    query = """
+    query = f"""
     SELECT id, nombre, apellido, pais
     FROM `tu-latam-challenge.analytics_dataset.analytics_table`
-    LIMIT 100
+    LIMIT {limit} OFFSET {offset}
     """
     
     return execute_query(query)
+
+
+def fetch_single_record_from_bigquery(record_id):
+    """
+    Ejecuta una consulta SQL para obtener un solo registro desde BigQuery basado en el ID.
+    :param record_id: El ID del registro a recuperar
+    :return: Diccionario con el registro encontrado o None si no se encuentra
+    """
+    query = f"""
+    SELECT id, nombre, apellido, pais
+    FROM `tu-latam-challenge.analytics_dataset.analytics_table`
+    WHERE id = '{record_id}'
+    LIMIT 1
+    """
+    
+    results = execute_query(query)
+    if results:
+        return results[0]
+    else:
+        return None
 
 def insert_data(dataset_name, table_name, rows_to_insert):
     """
