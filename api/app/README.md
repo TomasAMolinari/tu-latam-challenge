@@ -6,8 +6,8 @@ La aplicación está diseñada para buscar información de BigQuery y exponerla 
 1. Instalar Python3
 2. Instalar virtualenv
 3. Docker (opcional)
-4. Copiar el archivo de credenciales `gcp-terraform-creds.json` usado en `/terraform` al directorio `api/config`.
-5. Modificar los valores de `gcp_vars_example.json` en `api/config` con los valores reales del proyecto de GCP y renombrar a `gcp_vars.json`.
+4. Copiar el archivo de credenciales `gcp-cred.json` usado en `/terraform` al directorio `shared/config`.
+5. Modificar los valores de `gcp_vars_example.json` en `shared/config` con los valores reales del proyecto de GCP y renombrar a `gcp_vars.json`.
 
 ## Ejecutar la aplicación localmente (en Linux)
 1. Crear el *virtual enviroment*

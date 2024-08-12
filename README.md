@@ -29,11 +29,11 @@ Para el despliegue automático de estos servicios en GCP, se utiliza el software
 
 El código se encuentra en el directorio `/terraform`, que contiene los servicios anteriormente mencionados, y la configuración básica para poder desplegarlos.
 
-Para crear los recursos en un **entorno GCP ya existente**, primero es necesario autenticarse a la consola de Google Cloud. Para esto se utiliza el **archivo de credenciales** de una *service account*. Este método es seguro y fácil de implementar. Para ello se crea una *service account* manualmente en GCP, con los permisos necesarios para correr todos los servicios correspondientes. Luego se crea una JSON *key* dentro de esta cuenta, la cual se coloca en el directorio `/terraform` con el nombre `gcp-terraform-creds.json`, y de esta forma Terraform conectará la cuenta de GCP correctamente.
+Para crear los recursos en un **entorno GCP ya existente**, primero es necesario autenticarse a la consola de Google Cloud. Para esto se utiliza el **archivo de credenciales** de una *service account*. Este método es seguro y fácil de implementar. Para ello se crea una *service account* manualmente en GCP, con los permisos necesarios para correr todos los servicios correspondientes. Luego se crea una JSON *key* dentro de esta cuenta, la cual se coloca en el directorio `/shared/config` con el nombre `gcp-cred.json`, y de esta forma Terraform conectará la cuenta de GCP correctamente.
 
-Este archivo JSON no debe ser incluido en el control de versiones, por los riesgos de seguridad que conlleva tener datos sensibles que permitan el acceso a la cuenta de Google Cloud.
+Este archivo JSON no es incluido en el control de versiones, por los riesgos de seguridad que conlleva tener datos sensibles que permitan el acceso a la cuenta de Google Cloud.
 
-Por el mismo motivo, no se cuenta con el archivo `terraform.tfvars` que indica a Terraform el valor de las variables que debe utilizar. Para facilitar la ejecución, se creó el archivo `terraforn.tfvars.example` que indica que variables hay que *setear*, y un valor de ejemplo para cada una de ellas.
+Por el mismo motivo, no se cuenta con el archivo `terraform.tfvars` que indica a Terraform el valor de las variables que debe utilizar. Para facilitar la ejecución, se creó el archivo `terraforn.tfvars.example` dentro del directorio `/terraform`, que indica que variables hay que *setear*, y un valor de ejemplo para cada una de ellas. Para ejecutar el código, simplemente se deben cambiar los valores del archivo de ejemplo y renombrarlo a `terraform.tfvars`.
 
 Una vez resuelto estas dos últimas cuestiones, se procede a inicializar el directorio de trabajo de Terraform, en el propio directorio `/terraform`:
 ```
@@ -78,3 +78,10 @@ La API se desarrolló utilizando el framework de **Flask** de Python, facilitand
 
 Para leer datos desde BigQuery, se implementó el método `execute_query` en el módulo `bigquery_handler.py` que ejecuta consultas SQL utilizando el cliente oficial de Google Cloud para Python (`google-cloud-bigquery`). Los resultados de las consultas se transforman en listas de diccionarios para facilitar su serialización y posterior envío como respuesta a las solicitudes HTTP.
 
+### 2. Despliegue de la API HTTP
+
+Para desplegar la aplicación en la nube, esepcificamente en el servicio de Google Cloud Run, se utiliza un workflow de **GitHub Actions** . Para facilitar esta tarea, se utilizan dos acciones que permiten la construcción y publicación de la imagen de Docker a un registro, para su posterior despliegue en GCP. Estas acciones son `push-to-gcr-github-action` y `deploy-cloudrun`. La utilización de estas acciones, en lugar de por ejemplo utilizar el paso `run`, permite abstraer la lógica de los pasos que realiza y así mejorar la comprensión y el mantenimiento del *workflow*.
+
+En *workflow* tambíen se realiza la creación de archivos con datos sensibles, que luego serán necesarios en la API. Se trata por ejemplo de los archivos `gcp_cred.json` y `gcp_vars.json`, que contiene la información para autenticarse a GCP y los nombres y valores de los servicios de GCP respectivamente. Para esto se utilizan los **GitHub Secrets** para *GitHub Actions*. Estos son variables que se crean a nivel repositorio, que contienen información sensible, y que luego pueden ser referenciados en el *workflow* para que al momento de ejecutarse, sea reemplazado por el valor seteado.
+
+La publicación de la imágen se realiza a un repositorio de **Google Container Registry**, la cual es luego utilizada por la instancia de Cloud Run y que de esta forma pueda crear el contenedor y ejecutar la API. El repositorio es creado una vez se sube la primera imágen con el workflow de Actions, indicando el nombre de este en la [acción](https://github.com/TomasAMolinari/tu-latam-challenge/blob/88d32c2f39e8f61dd37219cef34a8b5cc5799f94/.github/workflows/deploy.yml#L36). La imágen que la instancia de Cloud Run utiliza, se indica en el [códgio](https://github.com/TomasAMolinari/tu-latam-challenge/blob/88d32c2f39e8f61dd37219cef34a8b5cc5799f94/terraform/modules/cloudrun/main.tf#L9) de Terraform, junto con el resto de configuración de este servicio.
