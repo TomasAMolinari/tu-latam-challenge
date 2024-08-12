@@ -1,7 +1,7 @@
 provider "google" {
   project = var.project_id
   region  = var.region
-  credentials = file("${path.module}/gcp-terraform-creds.json")
+  credentials = file("${path.module}/../shared/config/gcp-cred.json")
 }
 
 provider "google" {

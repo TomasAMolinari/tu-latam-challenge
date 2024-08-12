@@ -2,10 +2,8 @@ import json
 import os
 from google.oauth2 import service_account
 
-print("---------------------------Ruta de ejecución:---------------------------", os.path.dirname(__file__))  # Verifica la ruta desde donde se está intentando abrir el archivo
-
 # ruta al archivo de credenciales
-CREDENTIALS_FILE = os.path.join(os.path.dirname(__file__), 'gcp-terraform-creds.json')
+CREDENTIALS_FILE = os.path.join(os.path.dirname(__file__), 'gcp_cred.json')
 
 # cargar las credenciales
 credentials = service_account.Credentials.from_service_account_file(CREDENTIALS_FILE)

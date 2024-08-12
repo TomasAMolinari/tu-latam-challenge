@@ -9,7 +9,7 @@ La aplicación está diseñada para buscar información de BigQuery y exponerla 
 4. Copiar el archivo de credenciales `gcp-terraform-creds.json` usado en `/terraform` al directorio `api/config`.
 5. Modificar los valores de `gcp_vars_example.json` en `api/config` con los valores reales del proyecto de GCP y renombrar a `gcp_vars.json`.
 
-## Correr la aplicación localmente (en Linux)
+## Ejecutar la aplicación localmente (en Linux)
 1. Crear el *virtual enviroment*
 ```sh
 python -m venv </path/to/new/virtual/environment>
@@ -35,7 +35,7 @@ FLASK_SECRET_KEY=<flask_secret_key>
 python run.py
 ```
 
-## Correr la aplicación con Docker
+## Ejecutar la aplicación con Docker
 
 1. Buildear la imágen
 

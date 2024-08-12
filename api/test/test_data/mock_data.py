@@ -5,7 +5,7 @@ from google.oauth2 import service_account
 from faker import Faker
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
-from config.config import credentials, gcp_vars
+from shared.config.config import credentials, gcp_vars
 
 project_id = gcp_vars['project_id']
 dataset_name = gcp_vars['bigquery']['dataset_name']

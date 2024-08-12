@@ -4,7 +4,7 @@ from google.cloud import bigquery
 import logging
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
-from config.config import credentials, gcp_vars
+from shared.config.config import credentials, gcp_vars
 
 project_id = gcp_vars['project_id']
 
@@ -69,7 +69,7 @@ def fetch_single_record_from_bigquery(record_id):
         return results[0]
     else:
         return None
-
+    
 def insert_data(dataset_name, table_name, rows_to_insert):
     """
     Inserta datos en una tabla de BigQuery.
