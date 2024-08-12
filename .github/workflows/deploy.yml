@@ -36,7 +36,6 @@ jobs:
         image_tag: latest,${{ github.sha }}
         dockerfile: ./api/Dockerfile
         context: ./api
-        target: build
 
     - name: Clean up credentials file
       run: rm -f ./api/gcp-terraform-creds.json
