@@ -1,0 +1,46 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - development
+  pull_request:
+    branches:
+      - development
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Cache Docker layers
+      uses: actions/cache@v3
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+            ${{ runner.os }}-buildx-
+
+    - name: Build and Push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: gcr.io/${{ secrets.GCP_PROJECT_ID }}/tu-latam-challenge-api:${{ github.sha }}
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+
+    - name: Deploy to Cloud Run
+      uses: google-github-actions/deploy-cloudrun@v1
+      with:
+        service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/tu-latam-challenge-api:${{ github.sha }}
+        service: ${{ secrets.CLOUD_RUN_SERVICE_NAME }}
+        region: ${{ secrets.GCP_REGION }}
+        allow-unauthenticated: true
