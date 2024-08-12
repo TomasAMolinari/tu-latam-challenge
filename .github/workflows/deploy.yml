@@ -22,6 +22,9 @@ jobs:
     - name: Set up GCP credentials
       run: echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > $HOME/gcp-terraform-creds.json
 
+    - name: Verify GCP credentials file
+      run: ls -la $HOME
+
     - name: Cache Docker layers
       uses: actions/cache@v3
       with:
