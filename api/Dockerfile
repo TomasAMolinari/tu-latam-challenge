@@ -12,7 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ ./app/
 COPY config/ ./config/
 COPY run.py .
-COPY config/gcp-terraform-creds.json /app/config/gcp-terraform-creds.json
+COPY $HOME/gcp-terraform-creds.json /config/gcp-terraform-creds.json
+
 
 EXPOSE 8080
 
