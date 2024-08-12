@@ -25,16 +25,10 @@ jobs:
       uses: docker/setup-buildx-action@v2
 
     - name: Write GCP credentials to file
-      run: echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > ./api/config/gcp-terraform-creds.json
+      run: echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > ./shared/config/gcp_cred.json
 
     - name: Write GCP vars to file
-      run: echo '${{ secrets.GCP_VARS }}' > ./api/config/gcp_vars.json
-
-    - name: Show the generated JSON
-      run: cat ./api/config/gcp_vars.json
-      
-    - name: Validate JSON file
-      run: python -m json.tool ./api/config/gcp_vars.json
+      run: echo '${{ secrets.GCP_VARS }}' > ./shared/config/gcp_vars.json
 
     - name: Build and Push Docker image to GCR
       uses: RafikFarhad/push-to-gcr-github-action@v5-rc1
@@ -46,8 +40,8 @@ jobs:
         dockerfile: ./api/Dockerfile
         context: ./api
 
-    - name: Clean up credentials file
-      run: rm -f ./api/config/gcp-terraform-creds.json
+    - name: Clean up sensitive files
+      run: rm -f ./shared/config/gcp_cred.json ./shared/config/gcp_vars.json
 
     - name: Deploy to Cloud Run
       uses: google-github-actions/deploy-cloudrun@v1
