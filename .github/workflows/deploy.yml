@@ -54,3 +54,5 @@ jobs:
         service: ${{ secrets.CLOUD_RUN_SERVICE_NAME }}
         region: ${{ secrets.GCP_REGION }}
         allow-unauthenticated: true
+        env_vars: |
+          FLASK_SECRET_KEY=${{ secrets.FLASK_SECRET_KEY }}
