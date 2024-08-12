@@ -27,6 +27,9 @@ jobs:
     - name: Write GCP credentials to file
       run: echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > ./api/config/gcp-terraform-creds.json
 
+    - name: Validate JSON file
+      run: python -m json.tool ./api/config/gcp-terraform-creds.json
+
     - name: Build and Push Docker image to GCR
       uses: RafikFarhad/push-to-gcr-github-action@v5-rc1
       with:
@@ -38,7 +41,7 @@ jobs:
         context: ./api
 
     - name: Clean up credentials file
-      run: rm -f ./api/gcp-terraform-creds.json
+      run: rm -f ./api/config/gcp-terraform-creds.json
 
     - name: Deploy to Cloud Run
       uses: google-github-actions/deploy-cloudrun@v1
