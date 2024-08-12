@@ -30,6 +30,12 @@ jobs:
     - name: Write GCP vars to file
       run: echo '${{ secrets.GCP_VARS }}' > ./api/config/gcp_vars.json
 
+    - name: Show the generated JSON
+      run: cat ./api/config/gcp_vars.json
+      
+    - name: Validate JSON file
+      run: python -m json.tool ./api/config/gcp_vars.json
+
     - name: Build and Push Docker image to GCR
       uses: RafikFarhad/push-to-gcr-github-action@v5-rc1
       with:
