@@ -30,7 +30,7 @@ jobs:
     - name: Build and Push Docker image
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: ./api
         push: true
         tags: gcr.io/${{ secrets.GCP_PROJECT_ID }}/tu-latam-challenge-api:${{ github.sha }}
         cache-from: type=local,src=/tmp/.buildx-cache
