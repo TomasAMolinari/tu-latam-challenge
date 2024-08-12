@@ -1,0 +1,7 @@
+#Ejemplo de .tfvars para desplegar los recursos en GCP
+project_id             = "your-project-id"
+region                 = "us-central1"
+pubsub_topic_name      = "data-ingest-topic"
+bigquery_dataset_name  = "analytics_dataset"
+bigquery_table_name    = "analytics_table"
+cloud_run_service_name = "data-api-service"

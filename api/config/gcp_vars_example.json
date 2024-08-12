@@ -1,0 +1,14 @@
+{
+    "project_id": "your-project-id",
+    "region": "us-central1",
+    "pubsub": {
+        "topic_name": "data-ingest-topic"
+    },
+    "bigquery": {
+        "dataset_name": "analytics_dataset",
+        "table_name": "analytics_table"
+    },
+    "cloud_run": {
+        "service_name": "data-api-service"
+    }
+}
