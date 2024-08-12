@@ -27,22 +27,16 @@ jobs:
     - name: Write GCP credentials to file
       run: echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > ./api/gcp-terraform-creds.json
 
-    - name: Cache Docker layers
-      uses: actions/cache@v3
+    - name: Build and Push Docker image to GCR
+      uses: RafikFarhad/push-to-gcr-github-action@v5-rc1
       with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
-        restore-keys: |
-            ${{ runner.os }}-buildx-
-
-    - name: Build and Push Docker image
-      uses: docker/build-push-action@v5
-      with:
+        registry: gcr.io
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        image_name: tu-latam-challenge-api
+        image_tag: latest,${{ github.sha }}
+        dockerfile: ./api/Dockerfile
         context: ./api
-        push: true
-        tags: gcr.io/${{ secrets.GCP_PROJECT_ID }}/tu-latam-challenge-api:${{ github.sha }}
-        cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+        target: build
 
     - name: Clean up credentials file
       run: rm -f ./api/gcp-terraform-creds.json
