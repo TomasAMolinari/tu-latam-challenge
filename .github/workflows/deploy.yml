@@ -37,8 +37,8 @@ jobs:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
         image_name: tu-latam-challenge-api
         image_tag: latest,${{ github.sha }}
-        dockerfile: ./api/Dockerfile
-        context: ./api
+        dockerfile: ./dockerfiles/Dockerfile.api
+        context: .
 
     - name: Clean up sensitive files
       run: rm -f ./shared/config/gcp_cred.json ./shared/config/gcp_vars.json
