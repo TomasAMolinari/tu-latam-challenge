@@ -16,6 +16,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
@@ -38,6 +43,9 @@ jobs:
         tags: gcr.io/${{ secrets.GCP_PROJECT_ID }}/tu-latam-challenge-api:${{ github.sha }}
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+
+    - name: Clean up credentials file
+      run: rm -f ./api/gcp-terraform-creds.json
 
     - name: Deploy to Cloud Run
       uses: google-github-actions/deploy-cloudrun@v1
