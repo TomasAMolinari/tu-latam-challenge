@@ -39,6 +39,9 @@ jobs:
     - name: Set environment variable for local URL
       run: echo "BASE_URL=http://localhost:8080" >> $GITHUB_ENV
 
+    - name: Install dependencies
+      run: pip install -r api/test/api_test/requirements.txt  
+      
     - name: Run local tests
       run: pytest api/test/api_test/integration_test.py
 
