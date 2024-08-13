@@ -34,7 +34,7 @@ jobs:
       run: rm -f ./shared/config/gcp_cred.json ./shared/config/gcp_vars.json
 
     - name: Run API container
-      run: docker run -p 8080:8080 -e FLASK_SECRET_KEY=${{ secrets.FLASK_SECRET_KEY }} tu-latam-challenge-api
+      run: docker run -d -p 8080:8080 -e FLASK_SECRET_KEY=${{ secrets.FLASK_SECRET_KEY }} tu-latam-challenge-api
 
     - name: Set environment variable for local URL
       run: echo "BASE_URL=http://localhost:8080" >> $GITHUB_ENV
