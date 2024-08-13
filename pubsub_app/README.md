@@ -1,6 +1,6 @@
 # HTTP API
 
-La aplicación está diseñada para buscar información de BigQuery y exponerla via REST API. Para ejecutarla se recomienda hacerlo con Docker, pero puede hacerse mediante Python directamente.
+La aplicación está diseñada para escuchar los mensajes de la suscripción del tópico de Pub/Sub, e insertarlos en la base de datos de BigQuery. Para ejecutarla se recomienda hacerlo con Docker, pero puede hacerse mediante Python directamente.
 
 ## Prerequisitos 
 1. Instalar Python3
@@ -25,11 +25,6 @@ source </path/to/new/virtual/environment>/Scripts/activate
 pip install -r requirements.txt
 ```
 
-4. Setear la variable de entorno `FLASK_SECRET_KEY` para Flask.
-```sh
-FLASK_SECRET_KEY=<flask_secret_key>
-```
-
 5. Ejecutar la aplicación
 ```sh
 python run.py
@@ -39,11 +34,11 @@ python run.py
 
 1. Buildear la imágen desde la raiz del proyecto
 ```sh
-docker build -f dockerfiles/Dockerfile.api -t tu-latam-challenge-api .
+docker build -f dockerfiles/Dockerfile.pubsub -t tu-latam-challenge-pubsub .
 ```
 
 2. Correr la aplicación
 
 ```sh
-docker run -p 8080:8080 -e FLASK_SECRET_KEY=<flask_secret_key> tu-latam-challenge-api
+docker run -p 5000:5000  tu-latam-challenge-pubsub
 ```

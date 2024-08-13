@@ -1,7 +1,7 @@
 provider "google" {
   project = var.project_id
   region  = var.region
-  credentials = file("${path.module}/../shared/config/gcp-cred.json")
+  credentials = file("${path.module}/../shared/config/gcp_cred.json")
 }
 
 provider "google" {
