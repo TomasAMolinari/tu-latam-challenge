@@ -59,36 +59,3 @@ def get_record_by_id(id):
     except Exception as e:
         logger.error(f"Error al obtener el registro: {e}")
         return jsonify({"error": "Error al obtener el registro"}), 500
-
-@bp.route('/add', methods=['POST'])
-def add_data():
-    """
-    POST /insert
-    - Descripción: Agrega nuevas filas a la tabla de BigQuery.
-    - Parámetros: JSON con 'id', 'nombre', 'apellido', 'pais'.
-    - Respuestas:
-      - 201: Datos agregados.
-      - 400: Datos incompletos.
-      - 500: Error al insertar datos o al procesar la solicitud.
-    """
-    try:
-        data = request.get_json()
-
-        # validar campos obligatorios
-        required_fields = ['id', 'nombre', 'apellido', 'pais']
-        if not all(field in data for field in required_fields):
-            return jsonify({"error": "Datos incompletos"}), 400
-
-        dataset_name = gcp_vars['bigquery']['dataset_name']
-        table_name = gcp_vars['bigquery']['table_name']
-
-        result = insert_data(dataset_name, table_name, data)
-
-        if result['status'] == 'error':
-            return jsonify({"error": "Error al insertar datos"}), 500
-
-        return jsonify({"message": "Datos procesados exitosamente"}), 200
-
-    except Exception as e:
-        logger.error(f"Error al procesar datos: {e}")
-        return jsonify({"error": "Error al procesar datos"}), 500

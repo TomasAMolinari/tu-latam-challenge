@@ -17,13 +17,9 @@ La infraestructura de la solución consta de tres partes: la ingesta de datos, e
 
 1. Para la **ingesta de datos** se utiliza el servicio **Pub/Sub** de GCP. Este recibe los datos de diversas fuentes, para luego distribuirse hacia el servicio de almacenamiento y análisis. Pub/Sub permite manejar flujos de datos en tiempo real y de manera asincrónica y escalable, siendo ideal en estos escenarios en los que es necesario desacoplar la ingesta de datos del procesamiento.
 
-2. El **almacenamiento y análisis de datos** se realiza mediante **BigQuery**. Este almacenará los datos ingeridos y proporcionará capacidad de análisis que podrá ser aprovechada por otras aplicaciones a través de consultas SQL. BigQuery almacena y analiza grandes volúmenes de datos sin necesidad de gestionar la infraestructura subyacente, lo que simplifica su manejo, pero sin dejar de lado el análsis avanzado de datos que se requiere.
+2. El **almacenamiento y análisis de datos** se realiza mediante **BigQuery**. Este almacenará los datos ingeridos y proporcionará capacidad de análisis que podrá ser aprovechada por otras aplicaciones a través de consultas SQL. BigQuery almacena y analiza grandes volúmenes de datos sin necesidad de gestionar la infraestructura subyacente, lo que simplifica su manejo, pero sin dejar de lado el análsis avanzado de datos que se requiere. Se utiliza unicamente un `dataset` con una única tabla para simplificar la posterior consulta con la API HTTP. Las columnas de la tabla son: un ID único, nombre, apellido y país. Siendo todos campos de tipo `string` y obligatorios.
 
-Se utiliza unicamente un `dataset` con una única tabla para simplificar la posterior consulta con la API HTTP. Las columnas de la tabla son: un ID único, nombre, apellido y país. Siendo todos campos de tipo `string` y obligatorios.
-
-3. Para **exponer los datos almacenados** mediante una API HTTP, se utiliza el servicio de **Cloud Run**. Este aloja la API que sirve los datos desde BigQuery, proporcionando un endpoint al que pueden consumir terceros. Al igual que BigQuery, Cloud Run es un servicio *serverless*, es decir que el *cloud provider*, en este caso GCP, se encargará de la gestíon del servidor, escalando automáticamente según la demanda y permitiendo que la API esté disponible y responda eficientemente las solicitudes sin gastar recursos innecesarios.
-
-Se utiliza el servicio de **Container Registry** de GCP para almacenar la imágen de Docker de la API. De esta forma, la instancia de Cloud Run podrá utilizarla y crear el contenedor con la aplicación simplemente referenciando el repositorio y el nombre de la imágen.
+3. Para **exponer los datos almacenados** mediante una API HTTP, se utiliza el servicio de **Cloud Run**. Este aloja la API que sirve los datos desde BigQuery, proporcionando un endpoint al que pueden consumir terceros. Al igual que BigQuery, Cloud Run es un servicio *serverless*, es decir que el *cloud provider*, en este caso GCP, se encargará de la gestíon del servidor, escalando automáticamente según la demanda y permitiendo que la API esté disponible y responda eficientemente las solicitudes sin gastar recursos innecesarios. Se utiliza el servicio de **Container Registry** de GCP para almacenar la imágen de Docker de la API. De esta forma, la instancia de Cloud Run podrá utilizarla y crear el contenedor con la aplicación simplemente referenciando el repositorio y el nombre de la imágen.
 
 ### 2. Despliegue de infraestructura
 
@@ -117,6 +113,8 @@ El siguiente **diagrama de arquitectura** es una representación a alto nivel de
 
 ## Parte 3: Pruebas de Integración y Puntos Críticos de Calidad
 
+### 1. Test de integración
+
 Para verificar que la API esté exponiendo correctamente los datos de BigQuery, se utiliza un **test de integración** mediante `integration_test.py`. Este código realiza requests a los dos métodos GET de la API para asegurarse que respondan correctamente. 
 
 Este código de prueba se puede probar localmente, pero está pensado para ejecutarse mediante GitHub Actions. Especificamente por medio de dos *workflows*: uno que ejecuta pruebas localmente en el *runner* de Actions, `local_test.yml`, y otro que las ejecuta directamente en la instancia de Cloud Run.
@@ -126,3 +124,5 @@ El primer *workflow* se ejecuta en ambas ramas `main` y `development`. Para esto
 Al ejecutarse correctamente el *workflow* de despliegue, este da lugar al último flujo de CI/CD, es decir la prueba de integración remota. Esta es mas sencilla que la local, ya que solo debe realizar las solicitudes a la instancia de Cloud Run recién actualizada.
 
 Para ambos *workflows* de pruebas, se utiliza el mismo código `integration_test.py`. Esto es posible con el uso de la [variable de entorno](https://github.com/TomasAMolinari/tu-latam-challenge/blob/a6f69adda78a4144cb38c2bad16e6778a5a884ad/api/test/api_test/integration_test.py#L4) para indicar que URL base utilizar, si la local, o la de Cloud Run. Esta variable será seteada en una [acción](https://github.com/TomasAMolinari/tu-latam-challenge/blob/a6f69adda78a4144cb38c2bad16e6778a5a884ad/.github/workflows/integration_test.yml#L26-L27) al momento de ejecutar cualquiera de los dos *workflows*.
+
+### 2. Otras pruebas de integración
