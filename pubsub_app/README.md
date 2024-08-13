@@ -1,6 +1,6 @@
 # HTTP API
 
-La aplicación está diseñada para escuchar los mensajes de la suscripción del tópico de Pub/Sub, e insertarlos en la base de datos de BigQuery. Para ejecutarla se recomienda hacerlo con Docker, pero puede hacerse mediante Python directamente.
+La aplicación está diseñada para escuchar los mensajes de la suscripción del tópico de Pub/Sub, e insertarlos en la base de datos de BigQuery. Se recomienda ejecutarla con Docker, pero puede hacerse mediante Python también.
 
 ## Prerequisitos 
 1. Instalar Python3
@@ -25,7 +25,7 @@ source </path/to/new/virtual/environment>/Scripts/activate
 pip install -r requirements.txt
 ```
 
-5. Ejecutar la aplicación
+4. Ejecutar la aplicación
 ```sh
 python run.py
 ```

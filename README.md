@@ -84,9 +84,25 @@ Para desplegar la aplicación en la nube, esepcificamente en el servicio de Goog
 
 En *workflow* tambíen se realiza la creación de archivos con datos sensibles, que luego serán necesarios en la API. Se trata por ejemplo de los archivos `gcp_cred.json` y `gcp_vars.json`, que contiene la información para autenticarse a GCP y los nombres y valores de los servicios de GCP respectivamente. Para esto se utilizan los **GitHub Secrets** para *GitHub Actions*. Estos son variables que se crean a nivel repositorio, que contienen información sensible, y que luego pueden ser referenciados en el *workflow* para que al momento de ejecutarse, sea reemplazado por el valor seteado.
 
-La publicación de la imágen se realiza a un repositorio de **Google Container Registry**, la cual es luego utilizada por la instancia de Cloud Run y que de esta forma pueda crear el contenedor y ejecutar la API. El repositorio es creado una vez se sube la primera imágen con el workflow de Actions, indicando el nombre de este en la [acción](https://github.com/TomasAMolinari/tu-latam-challenge/blob/88d32c2f39e8f61dd37219cef34a8b5cc5799f94/.github/workflows/deploy.yml#L36). La imágen que la instancia de Cloud Run utiliza, se indica en el [códgio](https://github.com/TomasAMolinari/tu-latam-challenge/blob/88d32c2f39e8f61dd37219cef34a8b5cc5799f94/terraform/modules/cloudrun/main.tf#L9) de Terraform, junto con el resto de configuración de este servicio.
+La publicación de la imágen se realiza a un repositorio de **Google Container Registry**, la cual es luego utilizada por la instancia de Cloud Run y que de esta forma pueda crear el contenedor y ejecutar la API. El repositorio es creado una vez se sube la primera imágen con el workflow de Actions, indicando el nombre de este en la [acción](https://github.com/TomasAMolinari/tu-latam-challenge/blob/88d32c2f39e8f61dd37219cef34a8b5cc5799f94/.github/workflows/deploy.yml#L36). La imágen que la instancia de Cloud Run utiliza, se indica en el [código](https://github.com/TomasAMolinari/tu-latam-challenge/blob/88d32c2f39e8f61dd37219cef34a8b5cc5799f94/terraform/modules/cloudrun/main.tf#L9) de Terraform, junto con el resto de configuración de este servicio.
 
-Con este código de Terraform, se desplegó la instancia de CloudRun, la cual a su vez corre la imágen de Docker publicada y desplegada por el *workflow*. La URL de la instancia es `https://data-api-service-vgf42mneka-uc.a.run.app`. Por lo tanto se puede probar la API, por ejemplo con la siguiente consulta: 
+Con este código de Terraform, se desplegó la instancia de CloudRun, la cual a su vez corre la imágen de Docker publicada y desplegada por el *workflow*. La **URL de la instancia** es `https://data-api-service-vgf42mneka-uc.a.run.app`. Por lo tanto se puede probar la API, por ejemplo con la siguiente consulta: 
+`https://data-api-service-vgf42mneka-uc.a.run.app/records/12345`
 
+Obteniendo como respuesta el siguiente JSON:
+```
+{
+  "apellido": "Perez",
+  "id": "12345",
+  "nombre": "Juan",
+  "pais": "Argentina"
+}
+```
 
 ### 3. Ingesta de datos mediante Pub/Sub
+
+Para la **ingesta de datos** se utiliza una aplicación en Python, la cual escucha continuamente a la suscripición del tópico de Google Pub/Sub, esperando a recibir un mensaje. Una vez recibido este mensaje, se ejecuta un [callback](https://github.com/TomasAMolinari/tu-latam-challenge/blob/f847594e3ea7b51e6d769e30af7764e27e677af0/pubsub_app/gcp_handler/pubsub_handler.py#L24-L45) para insertar el contenido en la base de datos de BigQuery.
+
+La aplicación se ejecuta de forma local, siguiendo los pasos de este [README.md](https://github.com/TomasAMolinari/tu-latam-challenge/blob/development/pubsub_app/README.md).
+
+Internamente, la función realiza la validación para insertar aquellos registros que contengan todos los campos necesarios. Si la información del mensaje no es correcta u ocurre algún error en el procesamiento, entonces se vuelve a intentar hasta llegar al número de intentos máximos dado en el [código](https://github.com/TomasAMolinari/tu-latam-challenge/blob/f847594e3ea7b51e6d769e30af7764e27e677af0/terraform/modules/pubsub/main.tf#L20) de Terraform. Si llega a la cantidad de intentos máximas, entonces se enviará el mensaje a otro tópico de Pub/Sub, utilizando la política de *deadman letter*.

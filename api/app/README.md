@@ -1,6 +1,6 @@
 # HTTP API
 
-La aplicación está diseñada para buscar información de BigQuery y exponerla via REST API. Para ejecutarla se recomienda hacerlo con Docker, pero puede hacerse mediante Python directamente.
+La aplicación está diseñada para buscar información de BigQuery y exponerla via REST API. Se recomienda ejecutarla con Docker, pero puede hacerse mediante Python también.
 
 ## Prerequisitos 
 1. Instalar Python3
