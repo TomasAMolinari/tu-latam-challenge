@@ -1,0 +1,30 @@
+name: Integration Tests
+
+on:
+    workflow_run:
+      workflows: ["Build and Deploy"]
+      types:
+        - completed
+
+jobs:
+  test_integration:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r api/test/api_test/requirements.txt
+
+      - name: Set environment variable for remote URL
+        run: echo "BASE_URL=${{ secrets.CLOUD_RUN_INSTANCE_URL }}" >> $GITHUB_ENV
+      
+      - name: Run integration tests
+        run: pytest api/test/api_test/integration_test.py

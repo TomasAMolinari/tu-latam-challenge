@@ -15,13 +15,15 @@ asegurar y monitorear la salud del sistema.
 ### 1. Servicios a utilizar
 La infraestructura de la solución consta de tres partes: la ingesta de datos, el almacenamiento y la exposición de estos. Esta infraestructura utiliza los servicios de **Google Cloud Platform** (GCP).
 
-a. Para la **ingesta de datos** se utiliza el servicio **Pub/Sub** de GCP. Este recibe los datos de diversas fuentes, para luego distribuirse hacia el servicio de almacenamiento y análisis. Pub/Sub permite manejar flujos de datos en tiempo real y de manera asincrónica y escalable, siendo ideal en estos escenarios en los que es necesario desacoplar la ingesta de datos del procesamiento.
+1. Para la **ingesta de datos** se utiliza el servicio **Pub/Sub** de GCP. Este recibe los datos de diversas fuentes, para luego distribuirse hacia el servicio de almacenamiento y análisis. Pub/Sub permite manejar flujos de datos en tiempo real y de manera asincrónica y escalable, siendo ideal en estos escenarios en los que es necesario desacoplar la ingesta de datos del procesamiento.
 
-b. El **almacenamiento y análisis de datos** se realiza mediante **BigQuery**. Este almacenará los datos ingeridos y proporcionará capacidad de análisis que podrá ser aprovechada por otras aplicaciones a través de consultas SQL. BigQuery almacena y analiza grandes volúmenes de datos sin necesidad de gestionar la infraestructura subyacente, lo que simplifica su manejo, pero sin dejar de lado el análsis avanzado de datos que se requiere.
+2. El **almacenamiento y análisis de datos** se realiza mediante **BigQuery**. Este almacenará los datos ingeridos y proporcionará capacidad de análisis que podrá ser aprovechada por otras aplicaciones a través de consultas SQL. BigQuery almacena y analiza grandes volúmenes de datos sin necesidad de gestionar la infraestructura subyacente, lo que simplifica su manejo, pero sin dejar de lado el análsis avanzado de datos que se requiere.
 
-Se utilizará unicamente un `dataset` con una única tabla para simplificar la posterior consulta con la API HTTP. Las columnas de la tabla serán: un ID único, nombre, apellido y país. Siendo todos campos de tipo `string` y obligatorios.
+Se utiliza unicamente un `dataset` con una única tabla para simplificar la posterior consulta con la API HTTP. Las columnas de la tabla son: un ID único, nombre, apellido y país. Siendo todos campos de tipo `string` y obligatorios.
 
-c. Para **exponer los datos almacenados** mediante una API HTTP, se utiliza el servicio de **Cloud Run**. Este aloja la API que sirve los datos desde BigQuery, proporcionando un endpoint al que pueden consumir terceros. Al igual que BigQuery, Cloud Run es un servicio *serverless*, es decir que el *cloud provider*, en este caso GCP, se encargará de la gestíon del servidor, escalando automáticamente según la demanda y permitiendo que la API esté disponible y responda eficientemente las solicitudes sin gastar recursos innecesarios.
+3. Para **exponer los datos almacenados** mediante una API HTTP, se utiliza el servicio de **Cloud Run**. Este aloja la API que sirve los datos desde BigQuery, proporcionando un endpoint al que pueden consumir terceros. Al igual que BigQuery, Cloud Run es un servicio *serverless*, es decir que el *cloud provider*, en este caso GCP, se encargará de la gestíon del servidor, escalando automáticamente según la demanda y permitiendo que la API esté disponible y responda eficientemente las solicitudes sin gastar recursos innecesarios.
+
+Se utiliza el servicio de **Container Registry** de GCP para almacenar la imágen de Docker de la API. De esta forma, la instancia de Cloud Run podrá utilizarla y crear el contenedor con la aplicación simplemente referenciando el repositorio y el nombre de la imágen.
 
 ### 2. Despliegue de infraestructura
 
@@ -84,7 +86,7 @@ Para desplegar la aplicación en la nube, esepcificamente en el servicio de Goog
 
 En *workflow* tambíen se realiza la creación de archivos con datos sensibles, que luego serán necesarios en la API. Se trata por ejemplo de los archivos `gcp_cred.json` y `gcp_vars.json`, que contiene la información para autenticarse a GCP y los nombres y valores de los servicios de GCP respectivamente. Para esto se utilizan los **GitHub Secrets** para *GitHub Actions*. Estos son variables que se crean a nivel repositorio, que contienen información sensible, y que luego pueden ser referenciados en el *workflow* para que al momento de ejecutarse, sea reemplazado por el valor seteado.
 
-La publicación de la imágen se realiza a un repositorio de **Google Container Registry**, la cual es luego utilizada por la instancia de Cloud Run y que de esta forma pueda crear el contenedor y ejecutar la API. El repositorio es creado una vez se sube la primera imágen con el workflow de Actions, indicando el nombre de este en la [acción](https://github.com/TomasAMolinari/tu-latam-challenge/blob/88d32c2f39e8f61dd37219cef34a8b5cc5799f94/.github/workflows/deploy.yml#L36). La imágen que la instancia de Cloud Run utiliza, se indica en el [código](https://github.com/TomasAMolinari/tu-latam-challenge/blob/88d32c2f39e8f61dd37219cef34a8b5cc5799f94/terraform/modules/cloudrun/main.tf#L9) de Terraform, junto con el resto de configuración de este servicio.
+La publicación de la imágen se realiza a un repositorio de **Google Container Registry**, la cual es luego utilizada por la instancia de Cloud Run y que de esta forma pueda crear el contenedor y ejecutar la API. El repositorio es creado una vez se sube la primera imágen con el *workflow* de Actions, indicando el nombre de este en la [acción](https://github.com/TomasAMolinari/tu-latam-challenge/blob/88d32c2f39e8f61dd37219cef34a8b5cc5799f94/.github/workflows/deploy.yml#L36). La imágen que la instancia de Cloud Run utiliza, se indica en el [código](https://github.com/TomasAMolinari/tu-latam-challenge/blob/88d32c2f39e8f61dd37219cef34a8b5cc5799f94/terraform/modules/cloudrun/main.tf#L9) de Terraform, junto con el resto de configuración de este servicio.
 
 Con este código de Terraform, se desplegó la instancia de CloudRun, la cual a su vez corre la imágen de Docker publicada y desplegada por el *workflow*. La **URL de la instancia** es `https://data-api-service-vgf42mneka-uc.a.run.app`. Por lo tanto se puede probar la API, por ejemplo con la siguiente consulta: 
 `https://data-api-service-vgf42mneka-uc.a.run.app/records/12345`
@@ -106,3 +108,21 @@ Para la **ingesta de datos** se utiliza una aplicación en Python, la cual escuc
 La aplicación se ejecuta de forma local, siguiendo los pasos de este [README.md](https://github.com/TomasAMolinari/tu-latam-challenge/blob/development/pubsub_app/README.md).
 
 Internamente, la función realiza la validación para insertar aquellos registros que contengan todos los campos necesarios. Si la información del mensaje no es correcta u ocurre algún error en el procesamiento, entonces se vuelve a intentar hasta llegar al número de intentos máximos dado en el [código](https://github.com/TomasAMolinari/tu-latam-challenge/blob/f847594e3ea7b51e6d769e30af7764e27e677af0/terraform/modules/pubsub/main.tf#L20) de Terraform. Si llega a la cantidad de intentos máximas, entonces se enviará el mensaje a otro tópico de Pub/Sub, utilizando la política de *deadman letter*.
+
+### 4. Diagrama de Arquitectura
+
+El siguiente **diagrama de arquitectura** es una representación a alto nivel de todas las interacciones del sistema, partiendo desde el momento en donde se publica la imágen de la API en Container Registry mediante el workflow de *GitHub Actions*, para luego ser utilizada por la instancia de Cloud Run, la cual recibe solicitudes de un usuario y le responde con los datos de BigQuery. A su vez el usuario publica mensajes en formato JSON al tópico de Pub/Sub, al cual se suscribe la aplicación de PubSub que es ejecutada por el usuario, y que al recibir los mensajes de este servicio, inserta la información en BigQuery.
+
+![diagrama](./img/diagrama.png)
+
+## Parte 3: Pruebas de Integración y Puntos Críticos de Calidad
+
+Para verificar que la API esté exponiendo correctamente los datos de BigQuery, se utiliza un **test de integración** mediante `integration_test.py`. Este código realiza requests a los dos métodos GET de la API para asegurarse que respondan correctamente. 
+
+Este código de prueba se puede probar localmente, pero está pensado para ejecutarse mediante GitHub Actions. Especificamente por medio de dos *workflows*: uno que ejecuta pruebas localmente en el *runner* de Actions, `local_test.yml`, y otro que las ejecuta directamente en la instancia de Cloud Run.
+
+El primer *workflow* se ejecuta en ambas ramas `main` y `development`. Para esto se construye la imágen de Docker de la API y se crea su contenedor, para luego ejecutar el código de pruebas forma local. Sí las pruebas son satisfactorias y el *workflow* termina su ejecución correctamente, entonces pasa a la ejecución del *workflow* mencionado en la sección anterior, `build_and_deploy.yml`. A diferencia del anterior, este *workflow* solo se ejecuta cuando se hace un *push* o un *pull request* a la rama `main`.
+
+Al ejecutarse correctamente el *workflow* de despliegue, este da lugar al último flujo de CI/CD, es decir la prueba de integración remota. Esta es mas sencilla que la local, ya que solo debe realizar las solicitudes a la instancia de Cloud Run recién actualizada.
+
+Para ambos *workflows* de pruebas, se utiliza el mismo código `integration_test.py`. Esto es posible con el uso de la [variable de entorno](https://github.com/TomasAMolinari/tu-latam-challenge/blob/a6f69adda78a4144cb38c2bad16e6778a5a884ad/api/test/api_test/integration_test.py#L4) para indicar que URL base utilizar, si la local, o la de Cloud Run. Esta variable será seteada en una [acción](https://github.com/TomasAMolinari/tu-latam-challenge/blob/a6f69adda78a4144cb38c2bad16e6778a5a884ad/.github/workflows/integration_test.yml#L26-L27) al momento de ejecutar cualquiera de los dos *workflows*.
