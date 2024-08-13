@@ -21,8 +21,17 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
+    - name: Write GCP credentials to file
+      run: echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > ./shared/config/gcp_cred.json
+
+    - name: Write GCP vars to file
+      run: echo '${{ secrets.GCP_VARS }}' > ./shared/config/gcp_vars.json
+
     - name: Build Docker image
       run: docker build -f dockerfiles/Dockerfile.api -t tu-latam-challenge-api .
+
+    - name: Clean up sensitive files
+      run: rm -f ./shared/config/gcp_cred.json ./shared/config/gcp_vars.json
 
     - name: Run API container
       run: docker run -p 8080:8080 -e FLASK_SECRET_KEY=${{ secrets.FLASK_SECRET_KEY }} tu-latam-challenge-api
