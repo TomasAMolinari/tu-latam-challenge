@@ -2,6 +2,7 @@ module "pubsub" {
   source = "./modules/pubsub"
 
   pubsub_topic_name = var.pubsub_topic_name
+  project_id             = var.project_id
 }
 
 module "bigquery" {

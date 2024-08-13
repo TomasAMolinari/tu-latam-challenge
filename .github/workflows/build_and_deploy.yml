@@ -1,0 +1,55 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - development
+  pull_request:
+    branches:
+      - development
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Write GCP credentials to file
+      run: echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > ./shared/config/gcp_cred.json
+
+    - name: Write GCP vars to file
+      run: echo '${{ secrets.GCP_VARS }}' > ./shared/config/gcp_vars.json
+
+    - name: Build and Push Docker image to GCR
+      uses: RafikFarhad/push-to-gcr-github-action@v5-rc1
+      with:
+        registry: gcr.io
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        image_name: tu-latam-challenge-api
+        image_tag: latest,${{ github.sha }}
+        dockerfile: ./dockerfiles/Dockerfile.api
+        context: .
+
+    - name: Clean up sensitive files
+      run: rm -f ./shared/config/gcp_cred.json ./shared/config/gcp_vars.json
+
+    - name: Deploy to Cloud Run
+      uses: google-github-actions/deploy-cloudrun@v1
+      with:
+        service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/tu-latam-challenge-api:${{ github.sha }}
+        service: ${{ secrets.CLOUD_RUN_SERVICE_NAME }}
+        region: ${{ secrets.GCP_REGION }}
+        allow-unauthenticated: true
+        env_vars: |
+          FLASK_SECRET_KEY=${{ secrets.FLASK_SECRET_KEY }}

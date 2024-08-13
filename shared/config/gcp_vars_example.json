@@ -2,7 +2,9 @@
     "project_id": "your-project-id",
     "region": "us-central1",
     "pubsub": {
-        "topic_name": "data-ingest-topic"
+        "topic_name": "data-ingest-topic",
+        "subscription_id": "your-subscription-id"
+
     },
     "bigquery": {
         "dataset_name": "analytics_dataset",

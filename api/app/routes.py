@@ -1,11 +1,11 @@
 import sys
 import os
 from flask import Blueprint, jsonify, request
-from .bigquery_handler import *
+from shared.gcp_handler.bigquery_handler import *
 import logging
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
-from config.config import gcp_vars
+from shared.config.config import gcp_vars
 
 bp = Blueprint('routes', __name__)
 
@@ -59,7 +59,6 @@ def get_record_by_id(id):
     except Exception as e:
         logger.error(f"Error al obtener el registro: {e}")
         return jsonify({"error": "Error al obtener el registro"}), 500
-
 
 @bp.route('/add', methods=['POST'])
 def add_data():

@@ -1,0 +1,17 @@
+FROM python:3.11-slim
+
+WORKDIR /challenge
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY ../pubsub_app/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY ../pubsub_app ./pubsub_app
+COPY ../shared/ ./shared
+
+EXPOSE 5000
+
+CMD ["python", "./pubsub_app/run.py"]

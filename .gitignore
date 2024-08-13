@@ -12,7 +12,7 @@ override.tf.json
 terraform.rc
 
 # Credenciales
-gcp-terraform-creds.json
+gcp_cred.json
 
 #Python
 venv/
