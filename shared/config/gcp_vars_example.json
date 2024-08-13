@@ -11,6 +11,7 @@
         "table_name": "analytics_table"
     },
     "cloud_run": {
-        "service_name": "data-api-service"
+        "service_name": "data-api-service",
+        "instance_url": "https://your-cloud-run-url"
     }
 }

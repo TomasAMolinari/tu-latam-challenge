@@ -114,3 +114,5 @@ Internamente, la función realiza la validación para insertar aquellos registro
 El siguiente **diagrama de arquitectura** es una representación a alto nivel de todas las interacciones del sistema, partiendo desde el momento en donde se publica la imágen de la API en Container Registry mediante el workflow de *GitHub Actions*, para luego ser utilizada por la instancia de Cloud Run, la cual recibe solicitudes de un usuario y le responde con los datos de BigQuery. A su vez el usuario publica mensajes en formato JSON al tópico de Pub/Sub, al cual se suscribe la aplicación de PubSub que es ejecutada por el usuario, y que al recibir los mensajes de este servicio, inserta la información en BigQuery.
 
 ![diagrama](./img/diagrama.png)
+
+## Parte 3: Pruebas de Integración y Puntos Críticos de Calidad
