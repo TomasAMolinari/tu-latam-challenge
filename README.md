@@ -409,7 +409,8 @@ Mide el tiempo que toma la API para responde una soilcitud desde que se recibe h
 La latencia afecta directamente al usuario. Mientras mayor sea el tiempo de respuesta, peor será la experiencia de este. Mantener el 95% de las respuestas en 2 segundos permite cierta flexibilidad para picos de tráfico ocasionales.
 
 3. **SLI: Tasa de Errores de la API**
-Descripción: Mide el porcentaje de solicitudes a la API que resultan en un código de error (4xx o 5xx).
+   
+Mide el porcentaje de solicitudes a la API que resultan en un código de error (4xx o 5xx).
 
 - SLO: Menos del 0,001% de las solicitudes deben resultar en un error por mes
 
