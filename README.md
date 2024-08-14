@@ -270,9 +270,9 @@ Además de las tres métricas críticas del punto anterior (Latencia de la API, 
 Permite identificar problemas de disponibilidad. Un alto número de reintentos indica posibles problemas en la red, en el código de la API o en la infraestructura.
 
 2. **Número de instancias de Cloud Run**: Gráfico de líneas que muestre el número de instancias de Cloud Run activas a lo largo del tiempo, junto con una métrica que indique el autoescalado, por ejemplo la tasa de solicitudes por segundo de la API. 
-Permite saber si el servicio de Cloud Run está escalando adecuadamente con el tráfico, o si haría falta ajustar la configuración de auto-escalado.
+Permite saber si el servicio de Cloud Run está escalando adecuadamente con el tráfico, o si haría falta ajustar la configuración de autoescalado.
 
-3. **Tiempo de iniciio de instancia**: Gráfico de líneas que indique el tiempo promedio que tarda en arrancar una nueva instancia de Cloud Run. 
+3. **Tiempo de inicio de instancia**: Gráfico de líneas que indique el tiempo promedio que tarda en arrancar una nueva instancia de Cloud Run. 
 Permite preparase ante un aumento del tráfico inesperado. Un tiempo de inicio elevado podría afectar la experiencia de usuario al no poder responder las solicitudes en un tiempo adecuado.
 
 4. **Duración de consultas de BigQuery**: Un gráfico de barras que muestre la duración promedio, mínima y máxima de las consultas de la API sobre BigQuery. 
@@ -330,3 +330,98 @@ Gracias a la implementación mencionada anteriormente en la nube, este es un pro
 
 - **Alertas ineficaces**: Un sistema mal escalado, podría generar un volúmen enorme de alertas, muchas irrelevantes o duplicadas, que puede llevar a que el personal encargado de revisar estas alertas ignore tanto alertas irrelevantes como críticas, ante la gran cantidad de estas.
 
+## Parte 5: Alertas y SRE
+
+### 1. Reglas y umbrales para las métricas
+
+1. **Tasa de reintentos de la API**
+
+  - Advertencia: 5 reintentos por minuto
+  - Crítico: 10 reintentos por minuto
+
+Superar el umbral crítico indicaría que la API está fallando constantemente, por problemas de red, inestablidad de la aplicación o de la infraestructura.
+
+2. **Número de instancias de Cloud Run**: 
+
+  - Advertencia: 70% del límite máximo
+  - Crítico: 90% del límite máximo
+
+Si el número de instancias se acerca al nivel crítico, entonces la capacidad del sistema estaría llegando a su máximo, por lo que sería necesario un ajuste en la configuración de autoescalado.
+
+3. **Tiempo de inicio de instancia**: 
+
+  - Advertencia: Tiempo promedio superior a 10 segundos
+  - Crítico: Tiempo promedio superior a 20 segundos
+
+Un tiempo de inicio muy grande podría causar latencia en la respuesta a nuevas solicitudes. Un umbral crítico de 20 segundos promedio permitiría intervenir antes que el usuario experimente tiempos de respuestas intolerables.
+
+4. **Duración de consultas de BigQuery**:
+
+  - Advertencia: Duración promedio superior a 3 segundos
+  - Crítico: Tiempo promedio superior a 5 segundos
+  
+  Una duración promedio de 3 segundos es aceptable teniendo en cuenta que la conexión y la posterior consulta de la API con BigQuery puede llevar un tiempo considerable. Un tiempo de espera mayor a 10 segundos para una consulta GET, podría tornarse inaceptable para el usuario.
+
+5. **Tasa de errores en BigQuery**: 
+
+  - Advertencia: 1% de errores en las consultas
+  - Crítico: 5% de errores en las consultas
+
+  Superar el umbral crítico afectaría en gran medida al acceso de los datos y a la funcionalidad de la API. Un 5% de errores son 5 errores cada 100 respuestas. Tomando un promedio de 1 petición por segundo, entonces habrá 3 errores por minuto, es decir 3 usuarios que no podrán recibir correctamente los datos, lo cual es excesivo para el tipo de consulta.
+
+6. **Tasa de mensajes publicados**: 
+
+  - Advertencia: Incremento del 50% en la tasa de mensajes publicados en comparación con el promedio
+  - Crítico: Incremento del 100% en la tasa de mensajes publicados.
+
+  Un incremento repentino del doble de mensajes publicados es provocado por un aumento inesperado de la carga o de un ataque de denegación de servicio. Para cualquiera de las dos situaciones se deberá tomar decisiones inmediatas para evitar mayores problemas.
+
+7. **Tasa de mensajes enviados al tema *deadman letter***: 
+
+  - Advertencia: 1% de mensajes enviados al tema
+  - Crítico: 5% de mensajes enviados al tema
+
+  Al igual que la alerta para la tasa de errores de BigQuery, superar el nivel crítico para este umbral indicaría que una cantidad mucho mayor a la deseada no está siendo confirmada por el tema de Pub/Sub. Por lo tanto tampoco estarían siendo insertados en BigQuery, perdiendose esta información por completo.
+
+8. **Tamaño promedio de los mensajes**: 
+
+  - Advertencia: Tamaño promedio superior a 256 KB
+  - Crítico: Tamaño promedio superior a 512 KB
+
+  Un tamaño promedio muy grande de archivo, superior a medio mega, podría relentizar el procesamiento de los mensajes y afectar la eficiencia del servicio de Pub/Sub. Controlar esto no solo que mejoraría los tiempos de respuesta, si no que evitaría costos de almacenamiento y procesamiento tanto en Pub/Sub como en BigQuery.
+
+### 2. SLIs y SLOs
+
+1. **SLI: Disponibilidad de la API**
+
+Mide el porcentaje de tiempo en el que la API está disponible y responde correctamente solicitudes.
+
+- SLO: 99,99% de la disponibilidad mensual.
+
+Un SLO menor al propuesto, por ejemplo 99,9%, implicaría que la aplicación podría estar inactiva mas de 43 minutos por mes. Esto es mucho tiempo para la parte más crítica e importante del sistema. Un SLO de 99,99% implicaría 4,32 minutos permitidos de inactivdad por mes, lo cual es accesible y aceptable.
+
+2. **SLI: Latencia de respuesta de la API**
+
+Mide el tiempo que toma la API para responde una soilcitud desde que se recibe hasta que se envía la respuesta.
+
+- SLO: 95% de las respuesta deben ser enviadas en menos de 2 segundos
+
+La latencia afecta directamente al usuario. Mientras mayor sea el tiempo de respuesta, peor será la experiencia de este. Mantener el 95% de las respuestas en 2 segundos permite cierta flexibilidad para picos de tráfico ocasionales.
+
+3. **SLI: Tasa de Errores de la API**
+Descripción: Mide el porcentaje de solicitudes a la API que resultan en un código de error (4xx o 5xx).
+
+- SLO: Menos del 0,001% de las solicitudes deben resultar en un error por mes
+
+Una tasa de error baja es aún mas importante que la latencia para la experiencia del usuario.  Es crucial mantener la cantidad de errores lo más baja posible. Un SLO de 0,001% implicaría que por ejemplo, para 1.000.000 de peticiones por mes, solo se tengan 1000 errores. Esto es aceptable para una API que su principal tarea es exponer la información de una base de datos.
+
+4. **SLI: Tasa de Mensajes No Procesados en Pub/Sub (*Deadman letter rate*)**
+
+Mide el porcentaje de mensajes que no pudieron ser procesados después de varios intentos y fueron enviados al tópico de *deadman letter*.
+
+- SLO: Menos del 0.00001% de los mensajes deben ser enviados al tópico de *deadman letter* por mes
+
+El componente más crítico del sistema es la inserción de los mensajes a la base de datos en BigQuery. Para un usuario o sistema es aceptable tener que volver a realizar una consulta que devuelva información por que esta falló. Sin embargo no es aceptable que la consulta falle si lo que quería era ingresar información a un sistema y gracias a este fallo ahora no pueda continuar. Una tasa de 0,00001% de errores implicaría que para 1.000.000 de consultas por mes, solo 10 fallarían, un número mucho más bajo en comparación al SLO de la API.
+
+Métricas como la CPU, RAM o almacenamiento **no se incluyeron** en los SLIs ya que no son importantes para monitorear el sistema. Estos no siempre reflejan directamente la experiencia del usuario ni la salud del sistema. 
+Los SLIs/SLOs deben incluir métricas que sean fundamentales para el funcionamiento del sistema y que si no se cumplen con el objetivo, corra peligro la operación de las aplicaciones e infraestructura. Es por esto que tampoco se incluyeron métricas de latencia de Pub/Sub ni de BigQuery, ya que no son críticas para el funcionamiento de las aplicaciones. Tampoco son críticas las métricas de mensajes publicados en Pub/Sub, el tamaño promedio de los mensajes o el número y tiempo de inicio de las instancias de Cloud Run. 
